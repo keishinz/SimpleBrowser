@@ -11,8 +11,10 @@ import WebKit
 
 class ViewController: UIViewController, WKNavigationDelegate {
     
+    var websites = ["yahoo", "google"]
     var webView: WKWebView!
     var progressView: UIProgressView!
+    var sitePermited: Bool = false
     
     override func loadView() {
         webView = WKWebView()
@@ -35,17 +37,11 @@ class ViewController: UIViewController, WKNavigationDelegate {
         toolbarItems = [progressButton, spacer, refresh]
         navigationController?.isToolbarHidden = false
 
-        let url = URL(string: "Https://www.udemy.com")
+        let url = URL(string: "https://" + websites[0] + ".co.jp")
         webView.load(URLRequest(url: url!))
         webView.allowsBackForwardNavigationGestures = true
         webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
     }
-    
-//    override class func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-//        if keyPath == "estimatedProgress" {
-//            progressView.progress = Float(webView.estimatedProgress)
-//        }
-//    }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "estimatedProgress" {
@@ -55,20 +51,57 @@ class ViewController: UIViewController, WKNavigationDelegate {
     
     @objc func openTapped() {
         let ac = UIAlertController(title: "Open Page...", message: nil, preferredStyle: .actionSheet)
-        ac.addAction(UIAlertAction(title: "apple.com", style: .default, handler: openPage))
-        ac.addAction(UIAlertAction(title: "google.com", style: .default, handler: openPage))
+        for website in websites {
+            ac.addAction(UIAlertAction(title: website, style: .default, handler: openPage(action:)))
+        }
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
         ac.popoverPresentationController?.barButtonItem = self.navigationItem.rightBarButtonItem
         present(ac, animated: true)
     }
 
     func openPage(action: UIAlertAction) {
-        let url = URL(string: "https://" + action.title!)!
+        let url = URL(string: "https://" + action.title! + ".co.jp")!
         webView.load(URLRequest(url: url))
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         title = webView.title
+    }
+    
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
+                 decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        
+//        sitePermited  = false
+        let url = navigationAction.request.url
+        if let host = url?.host {
+            print("host is " + host)
+            for website in websites {
+                if host.contains(website) {
+                    decisionHandler(.allow)
+                    sitePermited = true
+                    print(sitePermited)
+                    return
+                }
+            }
+        }
+        decisionHandler(.cancel)
+        if !sitePermited {
+            let alert: UIAlertController = UIAlertController(title: "Site not accessable.", message: "Please try another site.", preferredStyle:  UIAlertController.Style.alert)
+
+            let defaultAction = UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler:{
+                (action: UIAlertAction!) -> Void in
+                print("OK")
+            })
+            let cancelAction = UIAlertAction(title: "Cancel", style: UIAlertAction.Style.cancel, handler:{
+                (action: UIAlertAction!) -> Void in
+                print("Cancel")
+            })
+            
+            alert.addAction(cancelAction)
+            alert.addAction(defaultAction)
+            
+            present(alert, animated: true, completion: nil)
+        }
     }
 }
 
