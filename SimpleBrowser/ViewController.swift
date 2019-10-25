@@ -11,7 +11,7 @@ import WebKit
 
 class ViewController: UIViewController, WKNavigationDelegate {
     
-    var websites = ["yahoo", "google"]
+    var websites = ["amazon", "google"]
     var webView: WKWebView!
     var progressView: UIProgressView!
     var sitePermited: Bool = false
@@ -27,6 +27,9 @@ class ViewController: UIViewController, WKNavigationDelegate {
 
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "open", style: .plain, target: self, action: #selector(openTapped))
         
+        let back = UIBarButtonItem(image: UIImage(systemName: "arrow.left"), style: UIBarButtonItem.Style.plain, target: webView, action: #selector(webView.goBack))
+        let forward = UIBarButtonItem(image: UIImage(systemName: "arrow.right"), style: UIBarButtonItem.Style.plain, target: webView, action: #selector(webView.goForward))
+        
         progressView = UIProgressView(progressViewStyle: .default) //.bar
         progressView.sizeToFit()
         let progressButton = UIBarButtonItem(customView: progressView)
@@ -34,7 +37,7 @@ class ViewController: UIViewController, WKNavigationDelegate {
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
         let refresh = UIBarButtonItem(barButtonSystemItem: .refresh, target: webView, action: #selector(webView.reload))
         
-        toolbarItems = [progressButton, spacer, refresh]
+        toolbarItems = [back, forward, spacer, progressButton, spacer, refresh]
         navigationController?.isToolbarHidden = false
 
         let url = URL(string: "https://" + websites[0] + ".co.jp")
@@ -85,7 +88,7 @@ class ViewController: UIViewController, WKNavigationDelegate {
             }
         }
         decisionHandler(.cancel)
-        if !sitePermited {
+//        if !sitePermited {
             let alert: UIAlertController = UIAlertController(title: "Site not accessable.", message: "Please try another site.", preferredStyle:  UIAlertController.Style.alert)
 
             let defaultAction = UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler:{
@@ -101,7 +104,7 @@ class ViewController: UIViewController, WKNavigationDelegate {
             alert.addAction(defaultAction)
             
             present(alert, animated: true, completion: nil)
-        }
+//        }
     }
 }
 
